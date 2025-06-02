@@ -4,12 +4,12 @@ plugins {
 
 android {
   namespace = "com.example.to_do_list"
-  compileSdk = 35
+  compileSdk = 34
 
   defaultConfig {
     applicationId = "com.example.to_do_list"
-    minSdk = 30
-    targetSdk = 35
+    minSdk = 21
+    targetSdk = 34
     versionCode = 1
     versionName = "1.0"
 
