@@ -21,6 +21,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- 일정 추가 액티비티 -->
+        <activity
+            android:name=".AddTodoActivity"
+            android:exported="false"
+            android:label="일정 추가"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- 세부 사항 확인 액티비티 -->
+        <activity
+            android:name=".TodoDetailActivity"
+            android:exported="false"
+            android:label="할일 상세"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
