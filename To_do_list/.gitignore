@@ -7,9 +7,24 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/vcs.xml
+/.idea/misc.xml
+/.idea/compiler.xml
+/.idea/gradle.xml
+/.idea/*.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Additional Android Studio files
+app/build/
+.idea/
+../.idea/
+
+# API Keys (보안을 위해)
+google-services.json
+*.keystore
+*.jks

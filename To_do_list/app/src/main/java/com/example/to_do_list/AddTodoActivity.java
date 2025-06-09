@@ -115,10 +115,14 @@ public class AddTodoActivity extends AppCompatActivity {
         newTodo.setCompleted(isCompleted);
         newTodo.setDueDate(selectedDueDate);
 
-        // TODO: 실제로 데이터를 저장하는 로직 추가 (데이터베이스, SharedPreferences 등)
-        // 예: TodoManager.saveTodo(newTodo);
+        // TodoManager를 사용하여 데이터 저장
+        TodoManager todoManager = TodoManager.getInstance(this);
+        todoManager.saveTodo(newTodo);
 
+        setResult(RESULT_OK);
         Toast.makeText(this, "할일이 저장되었습니다", Toast.LENGTH_SHORT).show();
         finish();
     }
 } 
+
+
