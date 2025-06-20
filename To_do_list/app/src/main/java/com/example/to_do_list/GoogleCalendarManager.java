@@ -4,7 +4,11 @@ import android.content.Context;
 import android.accounts.Account;
 import android.util.Log;
 
+<<<<<<< HEAD
 import com.google.api.client.http.javanet.NetHttpTransport;
+=======
+import com.google.api.client.extensions.android.http.AndroidHttp;
+>>>>>>> 0e723050db7ad92052d48a1d8f5f6e5e3e7cd9c2
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -50,8 +54,13 @@ public class GoogleCalendarManager {
 
     public void setSelectedAccount(Account account) {
         credential.setSelectedAccount(account);
+<<<<<<< HEAD
 
         HttpTransport transport = new NetHttpTransport();
+=======
+        
+        HttpTransport transport = AndroidHttp.newCompatibleTransport();
+>>>>>>> 0e723050db7ad92052d48a1d8f5f6e5e3e7cd9c2
         JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
         
         mService = new Calendar.Builder(transport, jsonFactory, credential)
