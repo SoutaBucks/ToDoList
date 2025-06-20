@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_connect_google"
+        android:title="Google 계정 연결"
+        android:icon="@android:drawable/ic_menu_share"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_create_calendar"
+        android:title="캘린더 생성"
+        android:icon="@android:drawable/ic_menu_add"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_sync_calendar"
+        android:title="캘린더 동기화"
+        android:icon="@android:drawable/ic_menu_upload"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_add_test_event"
+        android:title="테스트 이벤트 추가"
+        android:icon="@android:drawable/ic_menu_add"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_view_events"
+        android:title="이벤트 목록 보기"
+        android:icon="@android:drawable/ic_menu_view"
+        app:showAsAction="never" />
+
+</menu> 
