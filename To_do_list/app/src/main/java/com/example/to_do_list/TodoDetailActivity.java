@@ -38,12 +38,14 @@ public class TodoDetailActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private Date selectedDueDate;
     private SimpleDateFormat dateFormat;
+    private TodoManager todoManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_todo_detail);
         
+        todoManager = TodoManager.getInstance(this);
         initializeViews();
         setupDateFormat();
         loadTodoData();
@@ -136,7 +138,8 @@ public class TodoDetailActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (currentTodo != null && !isEditMode) {
                     currentTodo.setCompleted(isChecked);
-                    // TODO: 즉시 완료 상태 업데이트
+                    // 실제로 데이터를 업데이트
+                    todoManager.updateTodo(currentTodo);
                     Toast.makeText(TodoDetailActivity.this, 
                         isChecked ? "완료 처리되었습니다" : "미완료로 변경되었습니다", 
                         Toast.LENGTH_SHORT).show();
@@ -204,11 +207,16 @@ public class TodoDetailActivity extends AppCompatActivity {
         currentTodo.setDescription(description);
         currentTodo.setDueDate(selectedDueDate);
 
-        // TODO: 실제로 데이터를 업데이트하는 로직 추가
-        // 예: TodoManager.updateTodo(currentTodo);
+        // 실제로 데이터를 업데이트
+        todoManager.updateTodo(currentTodo);
 
         Toast.makeText(this, "할일이 수정되었습니다", Toast.LENGTH_SHORT).show();
         setEditMode(false);
+        
+        // 결과를 MainActivity로 전달
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("updated", true);
+        setResult(RESULT_OK, resultIntent);
     }
 
     private void showDeleteConfirmDialog() {
@@ -226,10 +234,15 @@ public class TodoDetailActivity extends AppCompatActivity {
     }
 
     private void deleteTodo() {
-        // TODO: 실제로 데이터를 삭제하는 로직 추가
-        // 예: TodoManager.deleteTodo(currentTodo.getId());
+        // 실제로 데이터를 삭제
+        todoManager.deleteTodo(currentTodo);
 
         Toast.makeText(this, "할일이 삭제되었습니다", Toast.LENGTH_SHORT).show();
+        
+        // 결과를 MainActivity로 전달
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("deleted", true);
+        setResult(RESULT_OK, resultIntent);
         finish();
     }
 } 

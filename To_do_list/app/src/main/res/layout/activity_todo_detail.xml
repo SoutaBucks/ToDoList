@@ -1,55 +1,205 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:fillViewport="true">
 
-    <!-- 제목 -->
-    <TextView
-        android:id="@+id/textViewTitle"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="할 일 제목"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:padding="16dp">
 
-    <!-- 생성일 -->
-    <TextView
-        android:id="@+id/textViewCreatedDate"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="2025-06-09 18:00"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitle"
-        android:layout_marginTop="8dp"/>
+        <!-- 제목 블록 -->
+        <TextView
+            android:id="@+id/labelTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="제목"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"/>
 
-    <!-- 내용 -->
-    <TextView
-        android:id="@+id/textViewContent"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="할 일 상세 내용을 표시합니다."
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewCreatedDate"
-        app:layout_constraintBottom_toTopOf="@+id/buttonEdit"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        <EditText
+            android:id="@+id/editTextTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="할 일 제목을 입력하세요"
+            android:textSize="18sp"
+            android:enabled="false"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelTitle"/>
 
-    <!-- 편집 버튼 -->
-    <Button
-        android:id="@+id/buttonEdit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="편집"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- 내용 블록 -->
+        <TextView
+            android:id="@+id/labelDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="내용"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/editTextTitle"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <EditText
+            android:id="@+id/editTextDescription"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:hint="할 일 상세 내용을 입력하세요"
+            android:textSize="16sp"
+            android:gravity="top"
+            android:enabled="false"
+            android:inputType="textMultiLine"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelDescription"/>
+
+        <!-- 생성일 블록 -->
+        <TextView
+            android:id="@+id/labelCreatedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="생성일"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/editTextDescription"/>
+
+        <TextView
+            android:id="@+id/textViewCreatedDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="생성일: 2025-06-09"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="#F5F5F5"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelCreatedDate"/>
+
+        <!-- 마감일 블록 -->
+        <TextView
+            android:id="@+id/labelDueDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="마감일"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewCreatedDate"/>
+
+        <TextView
+            android:id="@+id/textViewDueDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="마감일: 설정 안함"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="#F5F5F5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelDueDate"
+            android:layout_marginTop="4dp"/>
+
+        <!-- 날짜 선택 버튼 (편집 모드에서만 표시) -->
+        <Button
+            android:id="@+id/buttonSelectDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="날짜 선택"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewDueDate"/>
+
+        <!-- 완료 상태 블록 -->
+        <TextView
+            android:id="@+id/labelCompleted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="완료 상태"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonSelectDate"/>
+
+        <CheckBox
+            android:id="@+id/checkBoxCompleted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="완료"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/labelCompleted"/>
+
+        <!-- 하단 버튼들 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="32dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checkBoxCompleted"
+            android:layout_marginBottom="16dp">
+
+            <!-- 편집 버튼 -->
+            <Button
+                android:id="@+id/buttonEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="편집"
+                android:layout_marginEnd="8dp"/>
+
+            <!-- 삭제 버튼 -->
+            <Button
+                android:id="@+id/buttonDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="삭제"
+                android:layout_marginEnd="8dp"/>
+
+            <!-- 저장 버튼 -->
+            <Button
+                android:id="@+id/buttonSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="저장"
+                android:visibility="gone"
+                android:layout_marginEnd="8dp"/>
+
+            <!-- 취소/닫기 버튼 -->
+            <Button
+                android:id="@+id/buttonCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="닫기"/>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

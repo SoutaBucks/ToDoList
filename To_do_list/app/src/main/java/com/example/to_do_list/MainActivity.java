@@ -1,9 +1,12 @@
 package com.example.to_do_list;
 
-import android.accounts.AccountManager;
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +18,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -31,13 +36,16 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     private RecyclerView recyclerViewTodos;
     private TextView textViewEmpty;
     private FloatingActionButton fabAddTodo;
+    private FloatingActionButton fabCalendar;
     private TodoAdapter todoAdapter;
     private TodoManager todoManager;
-    private GoogleCalendarManager calendarManager;
+    private AndroidCalendarManager calendarManager;
 
     private ActivityResultLauncher<Intent> addTodoLauncher;
     private ActivityResultLauncher<Intent> detailTodoLauncher;
-    private ActivityResultLauncher<Intent> accountPickerLauncher;
+    private ActivityResultLauncher<String[]> permissionLauncher;
+
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,24 +59,68 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             return insets;
         });
 
+        setupPermissionLauncher();
         initializeViews();
         setupRecyclerView();
         setupActivityLaunchers();
         setupClickListeners();
+        checkCalendarPermissions();
         loadTodos();
+    }
+
+    private void setupPermissionLauncher() {
+        permissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(),
+            permissions -> {
+                boolean allGranted = true;
+                for (Boolean granted : permissions.values()) {
+                    if (!granted) {
+                        allGranted = false;
+                        break;
+                    }
+                }
+                
+                if (allGranted) {
+                    Toast.makeText(this, "캘린더 권한이 허용되었습니다", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "캘린더 권한이 필요합니다", Toast.LENGTH_SHORT).show();
+                }
+            }
+        );
+    }
+
+    private void checkCalendarPermissions() {
+        String[] permissions = {
+            Manifest.permission.READ_CALENDAR,
+            Manifest.permission.WRITE_CALENDAR
+        };
+
+        boolean allPermissionsGranted = true;
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                allPermissionsGranted = false;
+                break;
+            }
+        }
+
+        if (!allPermissionsGranted) {
+            permissionLauncher.launch(permissions);
+        }
     }
 
     private void initializeViews() {
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
         textViewEmpty = findViewById(R.id.textViewEmpty);
         fabAddTodo = findViewById(R.id.fabAddTodo);
+        fabCalendar = findViewById(R.id.fabCalendar);
         todoManager = TodoManager.getInstance(this);
-        calendarManager = new GoogleCalendarManager(this);
+        calendarManager = todoManager.getCalendarManager();
     }
 
     private void setupRecyclerView() {
         todoAdapter = new TodoAdapter();
         todoAdapter.setOnTodoClickListener(this);
+        todoAdapter.setTodoManager(todoManager);
         recyclerViewTodos.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTodos.setAdapter(todoAdapter);
     }
@@ -90,23 +142,12 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 if (result.getResultCode() == RESULT_OK) {
                     loadTodos();
                     Intent data = result.getData();
-                    if (data != null && data.getBooleanExtra("deleted", false)) {
-                        Toast.makeText(this, "할일이 삭제되었습니다", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "할일이 수정되었습니다", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        );
-
-        accountPickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    String accountName = result.getData().getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                    if (accountName != null) {
-                        calendarManager.getCredential().setSelectedAccountName(accountName);
-                        Toast.makeText(this, "Google 계정이 연결되었습니다: " + accountName, Toast.LENGTH_SHORT).show();
+                    if (data != null) {
+                        if (data.getBooleanExtra("deleted", false)) {
+                            Toast.makeText(this, "할일이 삭제되었습니다", Toast.LENGTH_SHORT).show();
+                        } else if (data.getBooleanExtra("updated", false)) {
+                            Toast.makeText(this, "할일이 수정되었습니다", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }
@@ -117,6 +158,10 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         fabAddTodo.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddTodoActivity.class);
             addTodoLauncher.launch(intent);
+        });
+
+        fabCalendar.setOnClickListener(v -> {
+            openGoogleCalendar();
         });
     }
 
@@ -172,14 +217,11 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         
-        if (id == R.id.action_connect_google) {
-            connectGoogleAccount();
-            return true;
-        } else if (id == R.id.action_create_calendar) {
-            createGoogleCalendar();
-            return true;
-        } else if (id == R.id.action_sync_calendar) {
+        if (id == R.id.action_sync_calendar) {
             syncTodosToCalendar();
+            return true;
+        } else if (id == R.id.action_sync_all_todos) {
+            syncAllTodosWithCalendar();
             return true;
         } else if (id == R.id.action_add_test_event) {
             addTestEvent();
@@ -192,41 +234,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         return super.onOptionsItemSelected(item);
     }
 
-    private void connectGoogleAccount() {
-        GoogleAccountCredential credential = calendarManager.getCredential();
-        Intent intent = credential.newChooseAccountIntent();
-        accountPickerLauncher.launch(intent);
-    }
-
-    private void createGoogleCalendar() {
-        if (!calendarManager.isCredentialSet()) {
-            Toast.makeText(this, "먼저 Google 계정을 연결해주세요", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("캘린더를 생성하는 중...");
-        progressDialog.show();
-
-        new Thread(() -> {
-            try {
-                String result = calendarManager.createCalendar();
-                runOnUiThread(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(this, "캘린더 생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            }
-        }).start();
-    }
-
     private void syncTodosToCalendar() {
-        if (!calendarManager.isCredentialSet()) {
-            Toast.makeText(this, "먼저 Google 계정을 연결해주세요", Toast.LENGTH_SHORT).show();
+        if (!calendarManager.isCalendarAvailable()) {
+            Toast.makeText(this, "사용 가능한 캘린더가 없습니다", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -244,8 +254,10 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             int successCount = 0;
             for (Todo todo : todos) {
                 try {
-                    calendarManager.addTodoToCalendar(todo);
-                    successCount++;
+                    String result = calendarManager.addTodoToCalendar(todo);
+                    if (result.contains("추가되었습니다")) {
+                        successCount++;
+                    }
                 } catch (Exception e) {
                     // 개별 항목 실패는 계속 진행
                 }
@@ -261,9 +273,34 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         }).start();
     }
 
+    private void syncAllTodosWithCalendar() {
+        if (!calendarManager.isCalendarAvailable()) {
+            Toast.makeText(this, "사용 가능한 캘린더가 없습니다", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Todo> todos = todoManager.getAllTodos();
+        if (todos.isEmpty()) {
+            Toast.makeText(this, "동기화할 할일이 없습니다", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("캘린더에 동기화하는 중...");
+        progressDialog.show();
+
+        new Thread(() -> {
+            String result = calendarManager.syncAllTodosToCalendar(todos);
+            runOnUiThread(() -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+            });
+        }).start();
+    }
+
     private void addTestEvent() {
-        if (!calendarManager.isCredentialSet()) {
-            Toast.makeText(this, "먼저 Google 계정을 연결해주세요", Toast.LENGTH_SHORT).show();
+        if (!calendarManager.isCalendarAvailable()) {
+            Toast.makeText(this, "사용 가능한 캘린더가 없습니다", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -273,7 +310,8 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
         new Thread(() -> {
             try {
-                String result = calendarManager.addEvent();
+                Todo testTodo = new Todo("테스트 할일", "Android Calendar API 테스트");
+                String result = calendarManager.addTodoToCalendar(testTodo);
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
                     Toast.makeText(this, result, Toast.LENGTH_LONG).show();
@@ -288,8 +326,8 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     }
 
     private void viewEvents() {
-        if (!calendarManager.isCredentialSet()) {
-            Toast.makeText(this, "먼저 Google 계정을 연결해주세요", Toast.LENGTH_SHORT).show();
+        if (!calendarManager.isCalendarAvailable()) {
+            Toast.makeText(this, "사용 가능한 캘린더가 없습니다", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -299,8 +337,8 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
         new Thread(() -> {
             try {
-                String result = calendarManager.getEvent();
-                List<String> events = calendarManager.getEventStrings();
+                List<String> events = calendarManager.getCalendarEvents();
+                String result = calendarManager.getCalendarInfo();
                 
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
@@ -330,6 +368,32 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 });
             }
         }).start();
+    }
+
+    private void openGoogleCalendar() {
+        String packageName = "com.google.android.calendar";
+        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+        
+        if (intent != null) {
+            // Google Calendar 앱 실행
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Log.d("Calendar", "Google Calendar 앱 실행됨");
+        } else {
+            // Google Calendar 앱이 없으면 Play Store로 이동
+            new AlertDialog.Builder(this)
+                .setTitle("Google Calendar 없음")
+                .setMessage("Google Calendar 앱이 설치되어 있지 않습니다. Google Play Store에서 설치하시겠습니까?")
+                .setPositiveButton("설치", (dialog, which) -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
+                    } catch (android.content.ActivityNotFoundException anfe) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
+                    }
+                })
+                .setNegativeButton("취소", null)
+                .show();
+        }
     }
 
     @Override

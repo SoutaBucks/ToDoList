@@ -10,6 +10,8 @@ public class Todo implements Serializable {
     private boolean isCompleted;
     private Date createdDate;
     private Date dueDate;
+    private String calendarEventId; // Google Calendar 이벤트 ID
+    private String location; // 지역 정보
 
     // 생성자
     public Todo() {
@@ -30,6 +32,27 @@ public class Todo implements Serializable {
         this.isCompleted = isCompleted;
         this.createdDate = createdDate;
         this.dueDate = dueDate;
+    }
+
+    public Todo(int id, String title, String description, boolean isCompleted, Date createdDate, Date dueDate, String calendarEventId) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.isCompleted = isCompleted;
+        this.createdDate = createdDate;
+        this.dueDate = dueDate;
+        this.calendarEventId = calendarEventId;
+    }
+
+    public Todo(int id, String title, String description, boolean isCompleted, Date createdDate, Date dueDate, String calendarEventId, String location) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.isCompleted = isCompleted;
+        this.createdDate = createdDate;
+        this.dueDate = dueDate;
+        this.calendarEventId = calendarEventId;
+        this.location = location;
     }
 
     // Getter and Setter methods
@@ -79,5 +102,21 @@ public class Todo implements Serializable {
 
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public String getCalendarEventId() {
+        return calendarEventId;
+    }
+
+    public void setCalendarEventId(String calendarEventId) {
+        this.calendarEventId = calendarEventId;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 } 

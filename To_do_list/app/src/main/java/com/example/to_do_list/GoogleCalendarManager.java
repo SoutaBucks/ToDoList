@@ -4,11 +4,7 @@ import android.content.Context;
 import android.accounts.Account;
 import android.util.Log;
 
-<<<<<<< HEAD
 import com.google.api.client.http.javanet.NetHttpTransport;
-=======
-import com.google.api.client.extensions.android.http.AndroidHttp;
->>>>>>> 0e723050db7ad92052d48a1d8f5f6e5e3e7cd9c2
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -47,6 +43,16 @@ public class GoogleCalendarManager {
     }
 
     private void initializeCredential() {
+        // 클라이언트 ID 설정
+        String clientId = context.getString(R.string.google_calendar_client_id);
+        
+        if (!clientId.equals("123456789-abcdefghijklmnop.apps.googleusercontent.com")) {
+            // 실제 클라이언트 ID가 설정된 경우에만 사용
+            Log.d(TAG, "OAuth 2.0 클라이언트 ID 설정됨: " + clientId);
+        } else {
+            Log.w(TAG, "기본 클라이언트 ID가 사용됩니다. Google Cloud Console에서 실제 클라이언트 ID를 설정하세요.");
+        }
+        
         credential = GoogleAccountCredential.usingOAuth2(
                 context, Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
@@ -54,13 +60,8 @@ public class GoogleCalendarManager {
 
     public void setSelectedAccount(Account account) {
         credential.setSelectedAccount(account);
-<<<<<<< HEAD
 
         HttpTransport transport = new NetHttpTransport();
-=======
-        
-        HttpTransport transport = AndroidHttp.newCompatibleTransport();
->>>>>>> 0e723050db7ad92052d48a1d8f5f6e5e3e7cd9c2
         JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
         
         mService = new Calendar.Builder(transport, jsonFactory, credential)
@@ -145,50 +146,167 @@ public class GoogleCalendarManager {
      */
     public String addTodoToCalendar(Todo todo) throws IOException {
         if (mService == null) {
+            Log.e(TAG, "Calendar service is null - Google account not set");
+            return "Google 계정이 선택되지 않았습니다.";
+        }
+
+        try {
+            String calendarId = getCalendarID("ToDo List Calendar");
+            if (calendarId == null) {
+                // 캘린더가 없으면 생성
+                Log.d(TAG, "Calendar not found, creating new calendar");
+                String createResult = createCalendar();
+                if (!createResult.equals("캘린더가 생성되었습니다.")) {
+                    Log.e(TAG, "Failed to create calendar: " + createResult);
+                    return createResult;
+                }
+                calendarId = getCalendarID("ToDo List Calendar");
+                if (calendarId == null) {
+                    Log.e(TAG, "Calendar ID still null after creation");
+                    return "캘린더 생성 후 ID를 가져올 수 없습니다.";
+                }
+            }
+
+            Event event = new Event()
+                    .setSummary(todo.getTitle())
+                    .setDescription(todo.getDescription());
+
+            // 마감일이 있는 경우
+            if (todo.getDueDate() != null) {
+                EventDateTime dueDateTime = new EventDateTime()
+                        .setDateTime(new com.google.api.client.util.DateTime(todo.getDueDate()))
+                        .setTimeZone("Asia/Seoul");
+                event.setStart(dueDateTime);
+                event.setEnd(dueDateTime);
+            } else {
+                // 마감일이 없으면 오늘 날짜로 설정
+                Date today = new Date();
+                EventDateTime todayDateTime = new EventDateTime()
+                        .setDateTime(new com.google.api.client.util.DateTime(today))
+                        .setTimeZone("Asia/Seoul");
+                event.setStart(todayDateTime);
+                event.setEnd(todayDateTime);
+            }
+
+            Log.d(TAG, "Adding event to calendar: " + todo.getTitle());
+            Event createdEvent = mService.events().insert(calendarId, event).execute();
+            
+            // Todo에 이벤트 ID 저장 (나중에 삭제할 때 사용)
+            todo.setCalendarEventId(createdEvent.getId());
+            
+            Log.d(TAG, "Event added successfully: " + createdEvent.getId());
+            return "ToDo가 캘린더에 추가되었습니다: " + createdEvent.getHtmlLink();
+            
+        } catch (IOException e) {
+            Log.e(TAG, "IOException while adding todo to calendar: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected error while adding todo to calendar: " + e.getMessage());
+            throw new IOException("예상치 못한 오류: " + e.getMessage(), e);
+        }
+    }
+
+    /*
+     * ToDo 항목을 캘린더에서 삭제
+     */
+    public String removeTodoFromCalendar(Todo todo) throws IOException {
+        if (mService == null) {
             return "Google 계정이 선택되지 않았습니다.";
         }
 
         String calendarId = getCalendarID("ToDo List Calendar");
         if (calendarId == null) {
-            // 캘린더가 없으면 생성
-            String createResult = createCalendar();
-            if (!createResult.equals("캘린더가 생성되었습니다.")) {
-                return createResult;
-            }
-            calendarId = getCalendarID("ToDo List Calendar");
+            return "캘린더가 존재하지 않습니다.";
         }
 
-        Event event = new Event()
-                .setSummary(todo.getTitle())
-                .setDescription(todo.getDescription());
-
-        // 마감일이 있는 경우
-        if (todo.getDueDate() != null) {
-            EventDateTime dueDateTime = new EventDateTime()
-                    .setDateTime(new com.google.api.client.util.DateTime(todo.getDueDate()))
-                    .setTimeZone("Asia/Seoul");
-            event.setStart(dueDateTime);
-            event.setEnd(dueDateTime);
-        } else {
-            // 마감일이 없으면 오늘 날짜로 설정
-            Date today = new Date();
-            EventDateTime todayDateTime = new EventDateTime()
-                    .setDateTime(new com.google.api.client.util.DateTime(today))
-                    .setTimeZone("Asia/Seoul");
-            event.setStart(todayDateTime);
-            event.setEnd(todayDateTime);
+        String eventId = todo.getCalendarEventId();
+        if (eventId == null || eventId.isEmpty()) {
+            return "캘린더 이벤트 ID가 없습니다.";
         }
 
-        Event createdEvent = mService.events().insert(calendarId, event).execute();
-        return "ToDo가 캘린더에 추가되었습니다: " + createdEvent.getHtmlLink();
+        try {
+            mService.events().delete(calendarId, eventId).execute();
+            return "캘린더에서 삭제되었습니다.";
+        } catch (IOException e) {
+            Log.e(TAG, "캘린더 이벤트 삭제 실패: " + e.getMessage());
+            return "캘린더에서 삭제 실패: " + e.getMessage();
+        }
     }
 
     /*
-     * 완료된 ToDo 항목을 캘린더에서 삭제 (필요시)
+     * ToDo 항목을 캘린더에서 업데이트
      */
-    public String removeTodoFromCalendar(Todo todo) throws IOException {
-        // 구현 필요시 추가
-        return "캘린더에서 삭제 기능은 아직 구현되지 않았습니다.";
+    public String updateTodoInCalendar(Todo todo) throws IOException {
+        if (mService == null) {
+            return "Google 계정이 선택되지 않았습니다.";
+        }
+
+        String calendarId = getCalendarID("ToDo List Calendar");
+        if (calendarId == null) {
+            return "캘린더가 존재하지 않습니다.";
+        }
+
+        String eventId = todo.getCalendarEventId();
+        if (eventId == null || eventId.isEmpty()) {
+            // 이벤트 ID가 없으면 새로 추가
+            return addTodoToCalendar(todo);
+        }
+
+        try {
+            // 기존 이벤트 가져오기
+            Event event = mService.events().get(calendarId, eventId).execute();
+            
+            // 이벤트 정보 업데이트
+            event.setSummary(todo.getTitle());
+            event.setDescription(todo.getDescription());
+
+            // 마감일이 있는 경우
+            if (todo.getDueDate() != null) {
+                EventDateTime dueDateTime = new EventDateTime()
+                        .setDateTime(new com.google.api.client.util.DateTime(todo.getDueDate()))
+                        .setTimeZone("Asia/Seoul");
+                event.setStart(dueDateTime);
+                event.setEnd(dueDateTime);
+            }
+
+            // 이벤트 업데이트
+            Event updatedEvent = mService.events().update(calendarId, eventId, event).execute();
+            return "캘린더가 업데이트되었습니다.";
+        } catch (IOException e) {
+            Log.e(TAG, "캘린더 이벤트 업데이트 실패: " + e.getMessage());
+            // 업데이트 실패 시 새로 추가
+            return addTodoToCalendar(todo);
+        }
+    }
+
+    /*
+     * 모든 ToDo 항목을 캘린더에 동기화
+     */
+    public String syncAllTodosToCalendar(List<Todo> todos) throws IOException {
+        if (mService == null) {
+            return "Google 계정이 선택되지 않았습니다.";
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Todo todo : todos) {
+            try {
+                if (todo.getCalendarEventId() == null || todo.getCalendarEventId().isEmpty()) {
+                    // 새로 추가
+                    addTodoToCalendar(todo);
+                } else {
+                    // 업데이트
+                    updateTodoInCalendar(todo);
+                }
+                successCount++;
+            } catch (IOException e) {
+                Log.e(TAG, "Todo 동기화 실패: " + todo.getTitle() + " - " + e.getMessage());
+                failCount++;
+            }
+        }
+
+        return String.format("동기화 완료: 성공 %d개, 실패 %d개", successCount, failCount);
     }
 
     /*

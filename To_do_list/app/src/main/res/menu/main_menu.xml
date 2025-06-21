@@ -21,6 +21,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_sync_all_todos"
+        android:title="전체 일정 동기화"
+        android:icon="@android:drawable/ic_menu_upload"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_add_test_event"
         android:title="테스트 이벤트 추가"
         android:icon="@android:drawable/ic_menu_add"

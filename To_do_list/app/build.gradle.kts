@@ -49,7 +49,6 @@ dependencies {
   implementation(libs.play.services.auth.v2130)
   implementation(libs.google.api.client.android)
 
-
   implementation(libs.appcompat)
   implementation(libs.material)
   implementation(libs.activity)

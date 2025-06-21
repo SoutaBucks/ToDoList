@@ -82,6 +82,30 @@
 
         </LinearLayout>
 
+        <!-- 지역 선택 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="지역"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+                android:id="@+id/autoCompleteTextViewLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="지역을 검색하세요"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- 완료 상태 -->
         <CheckBox
             android:id="@+id/checkBoxCompleted"

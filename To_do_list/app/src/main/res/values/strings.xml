@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">To_do_list</string>
+    
+    <!-- Google Calendar API 설정 -->
+    <string name="google_calendar_api_key">AIzaSyAUdFVWA02AkRLTQp2xVOo3yMiGhNDoT1Q</string>
+    <string name="google_calendar_client_id">378981418292-00k1ecgf2ueo9fhosj4srjc98013qd3p.apps.googleusercontent.com</string>
+    
+    <!-- SHA-1 인증서 지문 (디버그용) -->
+    <string name="debug_sha1_fingerprint">8E:C4:23:C7:BB:5F:C9:B9:2F:0A:AB:70:1B:94:97:9B:D7:6D:81:E3</string>
 </resources>
