@@ -162,4 +162,14 @@
         <item>청송</item>
         <item>칠곡</item>
     </string-array>
+
+    <string-array name="todo_categories">
+        <item>기타</item>
+        <item>금융</item>
+        <item>만남</item>
+        <item>운동</item>
+        <item>업무</item>
+        <item>중요</item>
+        <item>학업</item>
+    </string-array>
 </resources> 

@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -15,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,11 +42,13 @@ public class AddTodoActivity extends AppCompatActivity {
     private Button buttonSave;
     private Button buttonCancel;
     private Button buttonSelectDate;
+    private Spinner spinnerCategory;
     
     private Date selectedDueDate;
     private SimpleDateFormat dateFormat;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private ScheduleClassifier scheduleClassifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +56,8 @@ public class AddTodoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_todo);
         
         initializeViews();
+        setupCategorySpinner();
+        setupClassifier();
         setupDateFormat();
         setupListeners();
         setupLocationAutoComplete();
@@ -66,6 +72,26 @@ public class AddTodoActivity extends AppCompatActivity {
         buttonSave = findViewById(R.id.buttonSave);
         buttonCancel = findViewById(R.id.buttonCancel);
         buttonSelectDate = findViewById(R.id.buttonSelectDate);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
+    }
+
+    private void setupCategorySpinner() {
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.todo_categories,
+            android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(adapter);
+    }
+
+    private void setupClassifier() {
+        try {
+            scheduleClassifier = new ScheduleClassifier(this);
+        } catch (Exception e) {
+            Toast.makeText(this, "분류기 초기화 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e("AddTodoActivity", "Error initializing classifier", e);
+        }
     }
 
     private void setupDateFormat() {
@@ -74,6 +100,21 @@ public class AddTodoActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+        editTextTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 사용자가 입력을 멈췄을 때만 분류를 실행하기 위한 간단한 디바운싱
+                handler.removeCallbacksAndMessages(null);
+                handler.postDelayed(() -> classifyTitle(s.toString()), 500);
+            }
+        });
+
         buttonSelectDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -209,6 +250,32 @@ public class AddTodoActivity extends AppCompatActivity {
                 finish();
             });
         });
+    }
+
+    private void classifyTitle(String title) {
+        if (scheduleClassifier == null) return;
+        if (title.trim().isEmpty()) return;
+
+        executor.execute(() -> {
+            try {
+                final String category = scheduleClassifier.classify(title);
+                handler.post(() -> {
+                    setSpinnerToValue(category);
+                });
+            } catch (Exception e) {
+                Log.e("AddTodoActivity", "Error classifying text", e);
+            }
+        });
+    }
+
+    private void setSpinnerToValue(String value) {
+        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinnerCategory.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).toString().equals(value)) {
+                spinnerCategory.setSelection(i);
+                break;
+            }
+        }
     }
 } 
 

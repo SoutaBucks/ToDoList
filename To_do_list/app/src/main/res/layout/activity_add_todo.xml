@@ -47,6 +47,21 @@
             android:inputType="textMultiLine"
             android:layout_marginBottom="16dp" />
 
+        <!-- 카테고리 선택 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="카테고리 (자동 추천)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerCategory"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp" />
+
         <!-- 마감일 선택 -->
         <TextView
             android:layout_width="wrap_content"

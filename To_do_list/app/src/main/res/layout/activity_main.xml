@@ -97,19 +97,6 @@
 
     <!-- Floating Action Buttons -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCalendar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="캘린더 보기"
-        android:src="@android:drawable/ic_menu_my_calendar"
-        app:backgroundTint="@color/secondary_color"
-        app:tint="@color/on_secondary_color"
-        app:elevation="6dp"
-        app:layout_anchor="@id/fabAddTodo"
-        app:layout_anchorGravity="top|start" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddTodo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -119,7 +106,18 @@
         app:backgroundTint="@color/primary_color"
         app:tint="@color/on_primary_color"
         app:elevation="8dp"
-        android:layout_gravity="bottom|end"
-        app:layout_anchorGravity="bottom|end" />
+        android:layout_gravity="bottom|start" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCalendar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="캘린더 보기"
+        android:src="@android:drawable/ic_menu_my_calendar"
+        app:backgroundTint="@color/secondary_color"
+        app:tint="@color/on_secondary_color"
+        app:elevation="6dp"
+        android:layout_gravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
