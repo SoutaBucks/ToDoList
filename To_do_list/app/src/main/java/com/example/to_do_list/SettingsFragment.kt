@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.fragment.Fragment
+import androidx.fragment.app.Fragment
 
 class SettingsFragment : Fragment() {
     
@@ -64,7 +64,7 @@ class SettingsFragment : Fragment() {
         spinnerDefaultCategory.adapter = adapter
         
         // 앱 버전 표시
-        textViewAppVersion.text = "버전 1.2.0 (날씨 기능 포함)"
+        textViewAppVersion.text = "버전 1.3.0 (알림 기능 포함)"
     }
     
     private fun initializeSharedPreferences() {
@@ -107,6 +107,8 @@ class SettingsFragment : Fragment() {
         switchNotifications.setOnCheckedChangeListener { _, isChecked ->
             savePreference(PREF_NOTIFICATIONS, isChecked)
             if (isChecked) {
+                // 알림 활성화 시 권한 확인 및 테스트 알림 표시
+                testNotificationFeature()
                 Toast.makeText(context, "알림이 활성화되었습니다", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "알림이 비활성화되었습니다", Toast.LENGTH_SHORT).show()
@@ -126,6 +128,7 @@ class SettingsFragment : Fragment() {
         
         // 기본 카테고리 설정
         val defaultCategory = sharedPreferences.getString(PREF_DEFAULT_CATEGORY, "기타")
+        @Suppress("UNCHECKED_CAST")
         val adapter = spinnerDefaultCategory.adapter as ArrayAdapter<String>
         val position = adapter.getPosition(defaultCategory)
         spinnerDefaultCategory.setSelection(position)
@@ -151,9 +154,41 @@ class SettingsFragment : Fragment() {
     }
     
     private fun clearAllData() {
-        val todoManager = TodoManager.getInstance(requireContext())
+        // val todoManager = TodoManager.getInstance(requireContext())
         // 모든 할일 삭제 (실제 구현은 TodoManager에 메소드 추가 필요)
         Toast.makeText(context, "모든 데이터가 삭제되었습니다", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun testNotificationFeature() {
+        val todoManager = TodoManager.getInstance(requireContext())
+        
+        // 알림 권한 확인
+        if (!todoManager.hasNotificationPermission()) {
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("알림 권한 필요")
+                .setMessage("알림 기능을 사용하려면 알림 권한을 허용해주세요.")
+                .setPositiveButton("설정으로 이동") { _, _ ->
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+                    startActivity(intent)
+                }
+                .setNegativeButton("취소", null)
+                .show()
+            return
+        }
+        
+        // 테스트 알림 표시
+        val testTodo = Todo("테스트 할일", "알림 기능 테스트입니다")
+        testTodo.setId(999)
+        
+        val notificationManager = todoManager.getNotificationManager()
+        notificationManager.showNotification(
+            testTodo,
+            "알림 테스트 🔔",
+            "알림 기능이 정상적으로 작동합니다!"
+        )
+        
+        Toast.makeText(context, "테스트 알림이 표시되었습니다", Toast.LENGTH_SHORT).show()
     }
     
     // 설정값을 다른 클래스에서 사용할 수 있도록 하는 헬퍼 메소드들

@@ -38,6 +38,25 @@
         android:icon="@android:drawable/ic_menu_view"
         app:showAsAction="never" />
 
+    <!-- 알림 관련 메뉴 항목들 -->
+    <item
+        android:id="@+id/action_show_today_due"
+        android:title="오늘 마감 할일 알림"
+        android:icon="@android:drawable/ic_menu_today"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_reschedule_notifications"
+        android:title="알림 다시 설정"
+        android:icon="@android:drawable/ic_popup_reminder"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_check_notification_permission"
+        android:title="알림 권한 확인"
+        android:icon="@android:drawable/ic_menu_info_details"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/action_database_info"
         android:title="데이터베이스 정보"

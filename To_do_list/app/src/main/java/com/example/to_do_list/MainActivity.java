@@ -73,6 +73,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         performDatabaseMigration();
         
         loadTodos();
+        
+        // 앱 시작 시 오늘 마감 할일 알림 표시
+        showTodayDueNotificationIfNeeded();
     }
 
     private void performDatabaseMigration() {
@@ -235,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
     @Override
     public void onTodoToggle(Todo todo) {
-        todoManager.updateTodo(todo);
+        todoManager.toggleTodoCompletion(todo);
         String message = todo.isCompleted() ? "할일이 완료되었습니다" : "할일이 미완료로 변경되었습니다";
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
@@ -270,6 +273,15 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             return true;
         } else if (id == R.id.action_settings) {
             showSettingsFragment();
+            return true;
+        } else if (id == R.id.action_show_today_due) {
+            showTodayDueNotification();
+            return true;
+        } else if (id == R.id.action_reschedule_notifications) {
+            rescheduleAllNotifications();
+            return true;
+        } else if (id == R.id.action_check_notification_permission) {
+            checkNotificationPermission();
             return true;
         }
         
@@ -519,5 +531,53 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 });
             }
         }).start();
+    }
+
+    private void showTodayDueNotificationIfNeeded() {
+        // 앱이 시작된 후 3초 뒤에 알림 표시 (사용자가 앱을 확인할 시간 제공)
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
+                todoManager.showTodayDueTodosNotification();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+    }
+
+    private void showTodayDueNotification() {
+        List<Todo> todayDueTodos = todoManager.getTodayDueTodos();
+        if (todayDueTodos.isEmpty()) {
+            Toast.makeText(this, "오늘 마감인 할일이 없습니다", Toast.LENGTH_SHORT).show();
+        } else {
+            todoManager.showTodayDueTodosNotification();
+            Toast.makeText(this, "오늘 마감 할일 " + todayDueTodos.size() + "개 알림을 표시했습니다", 
+                Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void rescheduleAllNotifications() {
+        todoManager.rescheduleAllNotifications();
+        Toast.makeText(this, "모든 알림이 다시 설정되었습니다", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void checkNotificationPermission() {
+        boolean hasPermission = todoManager.hasNotificationPermission();
+        String message = hasPermission ? "알림 권한이 허용되어 있습니다" : "알림 권한이 거부되어 있습니다";
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        
+        if (!hasPermission) {
+            // 설정으로 이동하는 다이얼로그 표시
+            new AlertDialog.Builder(this)
+                .setTitle("알림 권한 필요")
+                .setMessage("할일 알림을 받으려면 알림 권한을 허용해주세요.")
+                .setPositiveButton("설정으로 이동", (dialog, which) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
+                    startActivity(intent);
+                })
+                .setNegativeButton("취소", null)
+                .show();
+        }
     }
 }

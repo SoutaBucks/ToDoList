@@ -270,7 +270,8 @@ public class TodoDetailActivity extends AppCompatActivity {
         textViewWeather.setVisibility(View.VISIBLE);
         textViewWeather.setText("날씨: 로딩 중...");
         
-        WeatherManagerKt.getInstance().getWeatherForLocation(location, new WeatherManagerKt.WeatherCallback() {
+        WeatherManagerKt weatherManager = WeatherManagerKt.Companion.getInstance();
+        weatherManager.getWeatherForLocation(location, new WeatherManagerKt.WeatherCallback() {
             @Override
             public void onSuccess(String weatherInfo) {
                 runOnUiThread(() -> {
