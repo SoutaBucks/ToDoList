@@ -50,4 +50,10 @@
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_settings"
+        android:title="설정"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="never" />
+
 </menu> 

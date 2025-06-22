@@ -25,6 +25,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -266,6 +268,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         } else if (id == R.id.action_clear_database) {
             showClearDatabaseDialog();
             return true;
+        } else if (id == R.id.action_settings) {
+            showSettingsFragment();
+            return true;
         }
         
         return super.onOptionsItemSelected(item);
@@ -431,6 +436,11 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 .setNegativeButton("취소", null)
                 .show();
         }
+    }
+
+    private void showSettingsFragment() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     @Override
