@@ -18,4 +18,26 @@ public interface WeatherApiService {
         @Query("nx") int nx,
         @Query("ny") int ny
     );
+    
+    // 기상청 중기예보 API 엔드포인트 (육상예보)
+    @GET("getMidLandFcst")
+    Call<WeatherData.MidWeatherResponse> getMidLandForecast(
+        @Query("serviceKey") String serviceKey,
+        @Query("pageNo") int pageNo,
+        @Query("numOfRows") int numOfRows,
+        @Query("dataType") String dataType,
+        @Query("regId") String regId,
+        @Query("tmFc") String tmFc
+    );
+    
+    // 기상청 중기기온예보 API 엔드포인트
+    @GET("getMidTa")
+    Call<WeatherData.MidTemperatureResponse> getMidTemperatureForecast(
+        @Query("serviceKey") String serviceKey,
+        @Query("pageNo") int pageNo,
+        @Query("numOfRows") int numOfRows,
+        @Query("dataType") String dataType,
+        @Query("regId") String regId,
+        @Query("tmFc") String tmFc
+    );
 } 
