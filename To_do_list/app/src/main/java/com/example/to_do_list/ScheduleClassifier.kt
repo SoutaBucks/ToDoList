@@ -24,8 +24,8 @@ class ScheduleClassifier(ctx: Context) {
         // 1. 텍스트를 토큰 ID 배열로 변환
         val tokenIds = tokenizer.encode(text)
 
-        // 2. 모델 입력 형식에 맞게 2D 배열로 변경
-        val inputArray = arrayOf(tokenIds.map { it.toFloat() }.toFloatArray())
+        // 2. 모델 입력 형식에 맞게 2D 배열로 변경 (INT32로 유지)
+        val inputArray = arrayOf(tokenIds)
 
         // 3. 모델 출력 형식 준비
         val outputArray = Array(1) { FloatArray(labels.size) }
