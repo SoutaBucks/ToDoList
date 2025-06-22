@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -34,7 +34,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTodoClickListener {
 
     private RecyclerView recyclerViewTodos;
-    private TextView textViewEmpty;
+    private LinearLayout textViewEmpty;
     private FloatingActionButton fabAddTodo;
     private FloatingActionButton fabCalendar;
     private TodoAdapter todoAdapter;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
     private void initializeViews() {
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
-        textViewEmpty = findViewById(R.id.textViewEmpty);
+        textViewEmpty = findViewById(R.id.emptyStateLayout);
         fabAddTodo = findViewById(R.id.fabAddTodo);
         fabCalendar = findViewById(R.id.fabCalendar);
         todoManager = TodoManager.getInstance(this);
