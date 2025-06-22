@@ -1,30 +1,18 @@
 package com.example.to_do_list;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TodoManager {
-    private static final String PREF_NAME = "todo_prefs";
-    private static final String KEY_TODOS = "todos";
-    private static final String KEY_LAST_ID = "last_id";
     private static final String TAG = "TodoManager";
 
-    private SharedPreferences sharedPreferences;
-    private Gson gson;
+    private TodoDatabaseHelper databaseHelper;
     private static TodoManager instance;
     private AndroidCalendarManager calendarManager;
 
     private TodoManager(Context context) {
-        sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        gson = new Gson();
+        databaseHelper = new TodoDatabaseHelper(context.getApplicationContext());
         calendarManager = new AndroidCalendarManager(context);
     }
 
@@ -36,50 +24,30 @@ public class TodoManager {
     }
 
     public List<Todo> getAllTodos() {
-        String todosJson = sharedPreferences.getString(KEY_TODOS, "");
-        if (todosJson.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Type listType = new TypeToken<List<Todo>>(){}.getType();
-        List<Todo> todos = gson.fromJson(todosJson, listType);
-        return todos != null ? todos : new ArrayList<>();
+        return databaseHelper.getAllTodos();
     }
 
     public void saveTodo(Todo todo) {
-        List<Todo> todos = getAllTodos();
+        boolean isUpdate = todo.getId() != 0;
         
-        // ID가 없으면 새로운 ID 할당
-        if (todo.getId() == 0) {
-            int lastId = sharedPreferences.getInt(KEY_LAST_ID, 0);
-            todo.setId(++lastId);
-            sharedPreferences.edit().putInt(KEY_LAST_ID, lastId).apply();
+        if (isUpdate) {
+            // 기존 Todo 업데이트
+            databaseHelper.updateTodo(todo);
+            Log.d(TAG, "Todo 업데이트됨: " + todo.getId());
+        } else {
+            // 새로운 Todo 추가
+            long newId = databaseHelper.addTodo(todo);
+            todo.setId((int) newId);
+            Log.d(TAG, "새 Todo 추가됨: " + newId);
         }
-
-        // 기존 TODO가 있으면 업데이트, 없으면 추가
-        boolean found = false;
-        for (int i = 0; i < todos.size(); i++) {
-            if (todos.get(i).getId() == todo.getId()) {
-                todos.set(i, todo);
-                found = true;
-                break;
-            }
-        }
-        
-        if (!found) {
-            todos.add(0, todo); // 맨 앞에 추가
-        }
-
-        saveTodos(todos);
         
         // Android Calendar와 동기화
-        syncTodoWithCalendar(todo, found);
+        syncTodoWithCalendar(todo, isUpdate);
     }
 
     public void deleteTodo(Todo todo) {
-        List<Todo> todos = getAllTodos();
-        todos.removeIf(t -> t.getId() == todo.getId());
-        saveTodos(todos);
+        databaseHelper.deleteTodo(todo.getId());
+        Log.d(TAG, "Todo 삭제됨: " + todo.getId());
         
         // Android Calendar에서도 삭제
         removeTodoFromCalendar(todo);
@@ -89,26 +57,25 @@ public class TodoManager {
         saveTodo(todo); // saveTodo가 업데이트도 처리함
     }
 
-    private void saveTodos(List<Todo> todos) {
-        String todosJson = gson.toJson(todos);
-        sharedPreferences.edit().putString(KEY_TODOS, todosJson).apply();
+    public Todo getTodoById(int id) {
+        return databaseHelper.getTodoById(id);
     }
 
-    public Todo getTodoById(int id) {
-        List<Todo> todos = getAllTodos();
-        for (Todo todo : todos) {
-            if (todo.getId() == id) {
-                return todo;
-            }
-        }
-        return null;
+    public List<Todo> getCompletedTodos() {
+        return databaseHelper.getCompletedTodos();
+    }
+
+    public List<Todo> getIncompleteTodos() {
+        return databaseHelper.getIncompleteTodos();
+    }
+
+    public List<Todo> getTodosByCategory(String category) {
+        return databaseHelper.getTodosByCategory(category);
     }
 
     public void clearAllTodos() {
-        sharedPreferences.edit()
-                .remove(KEY_TODOS)
-                .remove(KEY_LAST_ID)
-                .apply();
+        databaseHelper.clearAllTodos();
+        Log.d(TAG, "모든 Todo가 삭제되었습니다.");
     }
 
     // Android Calendar 동기화 메서드들

@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.android.application)
+  id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -12,7 +13,7 @@ android {
 
   defaultConfig {
     applicationId = "com.example.to_do_list"
-    minSdk = 21
+    minSdk = 26
     targetSdk = 35
     versionCode = 1
     versionName = "1.0"
@@ -29,6 +30,9 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+  }
+  kotlinOptions {
+    jvmTarget = "11"
   }
 }
 
@@ -60,6 +64,11 @@ dependencies {
   implementation(libs.google.api.services.calendar)
   implementation(libs.google.auth.library)
   implementation(libs.play.services.auth)
+  implementation(libs.tensorflow.lite)
+  implementation(libs.tensorflow.lite.support)
+  implementation(libs.okhttp)
+  implementation(libs.retrofit)
+  implementation(libs.retrofit.gson)
   testImplementation(libs.junit)
   androidTestImplementation(libs.ext.junit)
   androidTestImplementation(libs.espresso.core)

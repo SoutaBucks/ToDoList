@@ -12,6 +12,7 @@ public class Todo implements Serializable {
     private Date dueDate;
     private String calendarEventId; // Google Calendar 이벤트 ID
     private String location; // 지역 정보
+    private String category; // 카테고리
 
     // 생성자
     public Todo() {
@@ -118,5 +119,13 @@ public class Todo implements Serializable {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 } 

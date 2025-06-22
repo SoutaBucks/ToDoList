@@ -15,6 +15,8 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -111,7 +113,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         private TextView textViewDueDate;
         private TextView textViewDday;
         private CheckBox checkBoxCompleted;
-        private ImageButton buttonDelete;
+        private MaterialButton buttonDelete;
 
         public TodoViewHolder(@NonNull View itemView) {
             super(itemView);

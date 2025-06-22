@@ -26,7 +26,10 @@ public class TodoDetailActivity extends AppCompatActivity {
     private EditText editTextTitle;
     private EditText editTextDescription;
     private TextView textViewCreatedDate;
+    private TextView textViewCategory;
     private TextView textViewDueDate;
+    private TextView labelWeather;
+    private TextView textViewWeather;
     private CheckBox checkBoxCompleted;
     private Button buttonEdit;
     private Button buttonDelete;
@@ -57,7 +60,10 @@ public class TodoDetailActivity extends AppCompatActivity {
         editTextTitle = findViewById(R.id.editTextTitle);
         editTextDescription = findViewById(R.id.editTextDescription);
         textViewCreatedDate = findViewById(R.id.textViewCreatedDate);
+        textViewCategory = findViewById(R.id.textViewCategory);
         textViewDueDate = findViewById(R.id.textViewDueDate);
+        labelWeather = findViewById(R.id.labelWeather);
+        textViewWeather = findViewById(R.id.textViewWeather);
         checkBoxCompleted = findViewById(R.id.checkBoxCompleted);
         buttonEdit = findViewById(R.id.buttonEdit);
         buttonDelete = findViewById(R.id.buttonDelete);
@@ -83,9 +89,21 @@ public class TodoDetailActivity extends AppCompatActivity {
                 textViewCreatedDate.setText("생성일: " + dateFormat.format(currentTodo.getCreatedDate()));
             }
             
+            // 카테고리 표시
+            if (currentTodo.getCategory() != null && !currentTodo.getCategory().isEmpty()) {
+                textViewCategory.setText("카테고리: " + currentTodo.getCategory());
+            } else {
+                textViewCategory.setText("카테고리: 기타");
+            }
+            
             if (currentTodo.getDueDate() != null) {
                 textViewDueDate.setText("마감일: " + dateFormat.format(currentTodo.getDueDate()));
                 selectedDueDate = currentTodo.getDueDate();
+                
+                // 마감일과 위치가 있으면 날씨 정보 로드
+                if (currentTodo.getLocation() != null && !currentTodo.getLocation().isEmpty()) {
+                    loadWeatherInfo(currentTodo.getLocation());
+                }
             } else {
                 textViewDueDate.setText("마감일: 설정 안함");
             }
@@ -244,5 +262,28 @@ public class TodoDetailActivity extends AppCompatActivity {
         resultIntent.putExtra("deleted", true);
         setResult(RESULT_OK, resultIntent);
         finish();
+    }
+
+    private void loadWeatherInfo(String location) {
+        // 날씨 UI 표시
+        labelWeather.setVisibility(View.VISIBLE);
+        textViewWeather.setVisibility(View.VISIBLE);
+        textViewWeather.setText("날씨: 로딩 중...");
+        
+        WeatherManager.getInstance().getWeatherForLocation(location, new WeatherManager.WeatherCallback() {
+            @Override
+            public void onSuccess(String weatherInfo) {
+                runOnUiThread(() -> {
+                    textViewWeather.setText("날씨: " + weatherInfo);
+                });
+            }
+            
+            @Override
+            public void onFailure(String error) {
+                runOnUiThread(() -> {
+                    textViewWeather.setText("날씨: " + error);
+                });
+            }
+        });
     }
 } 

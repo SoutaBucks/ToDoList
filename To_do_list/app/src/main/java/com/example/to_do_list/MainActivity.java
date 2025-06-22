@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -34,12 +34,13 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTodoClickListener {
 
     private RecyclerView recyclerViewTodos;
-    private TextView textViewEmpty;
+    private LinearLayout textViewEmpty;
     private FloatingActionButton fabAddTodo;
     private FloatingActionButton fabCalendar;
     private TodoAdapter todoAdapter;
     private TodoManager todoManager;
     private AndroidCalendarManager calendarManager;
+    private DatabaseMigrationHelper migrationHelper;
 
     private ActivityResultLauncher<Intent> addTodoLauncher;
     private ActivityResultLauncher<Intent> detailTodoLauncher;
@@ -65,7 +66,37 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         setupActivityLaunchers();
         setupClickListeners();
         checkCalendarPermissions();
+        
+        // 데이터베이스 마이그레이션 실행
+        performDatabaseMigration();
+        
         loadTodos();
+    }
+
+    private void performDatabaseMigration() {
+        migrationHelper = new DatabaseMigrationHelper(this);
+        
+        // 백그라운드에서 마이그레이션 실행
+        new Thread(() -> {
+            try {
+                migrationHelper.migrateIfNeeded();
+                
+                // 마이그레이션 통계 로그 출력
+                DatabaseMigrationHelper.MigrationStats stats = migrationHelper.getMigrationStats();
+                Log.d("MainActivity", "마이그레이션 통계: " + stats.toString());
+                
+                // 마이그레이션이 실행되었다면 UI 업데이트
+                if (stats.migrationCompleted && stats.sharedPrefCount > 0) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, 
+                            stats.sharedPrefCount + "개의 할일이 데이터베이스로 이동되었습니다.", 
+                            Toast.LENGTH_LONG).show();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("MainActivity", "마이그레이션 중 오류 발생: " + e.getMessage(), e);
+            }
+        }).start();
     }
 
     private void setupPermissionLauncher() {
@@ -110,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
     private void initializeViews() {
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
-        textViewEmpty = findViewById(R.id.textViewEmpty);
+        textViewEmpty = findViewById(R.id.emptyStateLayout);
         fabAddTodo = findViewById(R.id.fabAddTodo);
         fabCalendar = findViewById(R.id.fabCalendar);
         todoManager = TodoManager.getInstance(this);
@@ -228,6 +259,12 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             return true;
         } else if (id == R.id.action_view_events) {
             viewEvents();
+            return true;
+        } else if (id == R.id.action_database_info) {
+            showDatabaseInfo();
+            return true;
+        } else if (id == R.id.action_clear_database) {
+            showClearDatabaseDialog();
             return true;
         }
         
@@ -400,5 +437,77 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     protected void onResume() {
         super.onResume();
         loadTodos(); // 화면이 다시 활성화될 때 데이터 새로고침
+    }
+
+    private void showDatabaseInfo() {
+        if (migrationHelper == null) {
+            migrationHelper = new DatabaseMigrationHelper(this);
+        }
+        
+        DatabaseMigrationHelper.MigrationStats stats = migrationHelper.getMigrationStats();
+        List<Todo> allTodos = todoManager.getAllTodos();
+        List<Todo> completedTodos = todoManager.getCompletedTodos();
+        List<Todo> incompleteTodos = todoManager.getIncompleteTodos();
+        
+        StringBuilder info = new StringBuilder();
+        info.append("📊 데이터베이스 정보\n\n");
+        info.append("전체 할일: ").append(allTodos.size()).append("개\n");
+        info.append("완료된 할일: ").append(completedTodos.size()).append("개\n");
+        info.append("미완료 할일: ").append(incompleteTodos.size()).append("개\n\n");
+        info.append("🔄 마이그레이션 상태\n");
+        info.append(stats.toString());
+        
+        new AlertDialog.Builder(this)
+            .setTitle("데이터베이스 정보")
+            .setMessage(info.toString())
+            .setPositiveButton("확인", null)
+            .show();
+    }
+
+    private void showClearDatabaseDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("모든 데이터 삭제")
+            .setMessage("정말로 모든 할일 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.")
+            .setPositiveButton("삭제", (dialog, which) -> {
+                clearAllData();
+            })
+            .setNegativeButton("취소", null)
+            .show();
+    }
+
+    private void clearAllData() {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("데이터를 삭제하는 중...");
+        progressDialog.show();
+
+        new Thread(() -> {
+            try {
+                // 데이터베이스에서 모든 Todo 삭제
+                todoManager.clearAllTodos();
+                
+                // 캘린더에서도 삭제 (선택사항)
+                if (calendarManager.isCalendarAvailable()) {
+                    List<Todo> todos = todoManager.getAllTodos();
+                    for (Todo todo : todos) {
+                        try {
+                            calendarManager.removeTodoFromCalendar(todo);
+                        } catch (Exception e) {
+                            // 개별 삭제 실패는 무시
+                        }
+                    }
+                }
+                
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    loadTodos(); // UI 업데이트
+                    Toast.makeText(this, "모든 데이터가 삭제되었습니다", Toast.LENGTH_LONG).show();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "데이터 삭제 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+        }).start();
     }
 }

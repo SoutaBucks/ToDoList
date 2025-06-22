@@ -38,4 +38,16 @@
         android:icon="@android:drawable/ic_menu_view"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_database_info"
+        android:title="데이터베이스 정보"
+        android:icon="@android:drawable/ic_menu_info_details"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_clear_database"
+        android:title="모든 데이터 삭제"
+        android:icon="@android:drawable/ic_menu_delete"
+        app:showAsAction="never" />
+
 </menu> 
