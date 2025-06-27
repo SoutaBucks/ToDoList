@@ -30,6 +30,15 @@
     <color name="outline_color">#79747E</color>
     <color name="outline_variant_color">#CAC4D0</color>
     
+    <!-- Category Colors -->
+    <color name="category_work">#FF5722</color>
+    <color name="category_personal">#2196F3</color>
+    <color name="category_education">#4CAF50</color>
+    <color name="category_health">#FF9800</color>
+    <color name="category_finance">#9C27B0</color>
+    <color name="category_important">#F44336</color>
+    <color name="category_other">#607D8B</color>
+    
     <!-- Legacy colors for compatibility -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
